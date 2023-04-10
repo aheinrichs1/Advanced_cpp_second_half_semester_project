@@ -1,4 +1,8 @@
-//Header file PuzzleRoom.h
+/*
+ * Author: Alex Heinrichs
+ * Date: 3/27/22
+ * Email: aheinrichs@dmacc.edu
+*/
 #pragma once
 #include <string>
 

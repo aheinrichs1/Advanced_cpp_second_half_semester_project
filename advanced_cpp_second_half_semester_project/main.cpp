@@ -8,6 +8,6 @@ int main()
 {
     roomAMain();
     PuzzleRoom room = PuzzleRoom();
-    roomAMain();
     battleRoomMain();
+    roomAMain();
 }

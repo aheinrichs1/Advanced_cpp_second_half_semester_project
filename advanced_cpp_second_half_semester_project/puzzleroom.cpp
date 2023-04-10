@@ -1,3 +1,8 @@
+/*
+ * Author: Alex Heinrichs
+ * Date: 3/27/22
+ * Email: aheinrichs@dmacc.edu
+*/
 #include "puzzleroom.h"
 #include <iostream>
 #include <stdlib.h>

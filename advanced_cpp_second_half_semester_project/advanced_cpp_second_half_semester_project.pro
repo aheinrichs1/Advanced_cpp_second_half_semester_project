@@ -10,7 +10,6 @@ CONFIG -= app_bundle
 SOURCES += \
         main.cpp \
         puzzleroom.cpp
-        rooma.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -18,5 +17,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    battleRoom.h \
     puzzleroom.h \
     roomA.h

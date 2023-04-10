@@ -6,7 +6,6 @@
 #ifndef ROOMA_H
 #define ROOMA_H
 
-#endif // ROOMA_H
 #include <iostream>
 using namespace std;
 
@@ -71,3 +70,5 @@ int roomAMain() {
 
     return 0;
 }
+
+#endif // ROOMA_H
