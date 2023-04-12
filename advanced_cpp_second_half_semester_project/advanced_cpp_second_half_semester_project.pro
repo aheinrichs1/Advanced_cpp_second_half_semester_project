@@ -19,4 +19,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     battleRoom.h \
     puzzleroom.h \
-    roomA.h
+    roomA.h \
+    rooms.h
