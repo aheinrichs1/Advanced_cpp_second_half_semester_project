@@ -64,9 +64,6 @@ public:
     //gets user input using a validation loop between 1-numOptions
     void getInput(int numOptions);
 
-    //process input
-    void processInput();
-
     //clear console screen
     void clearScreen();
 

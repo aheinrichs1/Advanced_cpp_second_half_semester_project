@@ -6,9 +6,11 @@
 
 int main()
 {
+    PuzzleRoom room = PuzzleRoom();
     Rooms r = Riddle();
     roomAMain();
-    PuzzleRoom room = PuzzleRoom();
+
     battleRoomMain();
     roomAMain();
+    return 0;
 }

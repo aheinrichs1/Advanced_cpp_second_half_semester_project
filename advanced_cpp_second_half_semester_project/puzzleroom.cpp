@@ -4,6 +4,7 @@
  * Email: aheinrichs@dmacc.edu
 */
 #include "puzzleroom.h"
+#include "getchInput.h"
 #include <iostream>
 #include <stdlib.h>
 #include <cstdlib>
@@ -11,6 +12,7 @@
 #include <thread>
 #include <algorithm>
 #include <iterator>
+#include <vector>
 
 //default constructor
 PuzzleRoom::PuzzleRoom()
@@ -244,9 +246,6 @@ void PuzzleRoom::leftPuzzle()
     //create bool to determine puzzle fail/win and set
     bool puzzleFail = false;
 
-    //create/set int for number of correct matches and incorrect matches
-    int correctMatches = 0;
-    int incorrectMatches = 0;
 
     //create user guesses
     int guess1 = 1;
@@ -256,11 +255,57 @@ void PuzzleRoom::leftPuzzle()
     int const boardSize = 16;
     int board[boardSize]{};
 
-    //load board with random ints
-    for (int i = 0; i < boardSize; i++) board[i] = (rand() % 2) + 1; //random number between 1-2
+    //create/set int for number of correct matches and incorrect matches
+    int correctMatches = 0;
+    int incorrectGuessesLeft = boardSize / 2;
+
+    //load board with ints 1-8
+    int numbers = 8;
+    for(int i = 0; i < boardSize; i++) board[i] = (i % numbers) + 1;
+
+    //randomize array
+    //create array of random ints for a randomized selection sort on the board
+    int randomizer[boardSize]{};
+
+    //generate initial rand() seed based off system time
+    srand(static_cast<int>(time(0)));
+
+    for (int i = 0; i < boardSize; i++)
+    {
+        //get new random seed from last rand om number
+        srand(rand());
+        randomizer[i] = rand(); //random ints with system clock as random seed
+    }
+
+    //RANDOM SORT:
+    //performed through a selection sort of the randomizer, and
+    //perform the same sorting on the board array
+    int min_index;
+    for (int i = 0; i < boardSize - 1; i++)
+    {
+        min_index = i;
+        for (int j = i + 1; j < boardSize; j++)
+        {
+            if (randomizer[j] < randomizer[min_index])
+            {
+                min_index = j;
+            }
+        }
+        //swap randomizer variables
+        int temp = randomizer[i];
+        randomizer[i] = randomizer[min_index];
+        randomizer[min_index] = temp;
+        //swap board numbers
+        temp = board[i];
+        board[i] = board[min_index];
+        board[min_index] = temp;
+    }
 
     //create boolean array of user guesses and set to false
     bool userGuess[boardSize]{false};
+
+    //create vector to store incorrect guesses
+    std::vector<int>incorrectGuesses;
 
 
     //ENTER PUZZLE LOOP
@@ -271,7 +316,7 @@ void PuzzleRoom::leftPuzzle()
 
         //Print start, correct, or incorrect message:
         //if game has just started, print a blank space
-        if ((correctMatches == 0) && (incorrectMatches == 0))
+        if (incorrectGuessesLeft == (boardSize / 2))
         {
             std::cout << std::endl;
         }
@@ -284,6 +329,15 @@ void PuzzleRoom::leftPuzzle()
             std::cout << "Incorrect!" << std::endl;
         }
 
+        //Display incorrect guesses
+        if(!incorrectGuesses.empty())
+        {
+            std::sort(incorrectGuesses.begin(), incorrectGuesses.end());
+            //One liner that deletes any elements in vector that have been guessed
+            for(size_t i = 0; i < incorrectGuesses.size(); i++) if(userGuess[incorrectGuesses[i] - 1] == true) incorrectGuesses.erase(incorrectGuesses.begin() + i--);
+            for(size_t i = 0; i < incorrectGuesses.size(); i++) std::cout << "Square " << incorrectGuesses[i] << " contains " << board[incorrectGuesses[i] - 1] << std::endl;
+        }
+
         //Print board:
         for (int i = 0; i < boardSize; i++)
         {
@@ -294,8 +348,7 @@ void PuzzleRoom::leftPuzzle()
         }
 
         //Print correct and incorrect guesses
-        std::cout << "Correct matches: " << correctMatches << std::endl;
-        std::cout << "Incorrect matches: " << incorrectMatches << std::endl;
+        std::cout << "Incorrect guesses left: " << incorrectGuessesLeft << std::endl;
 
         std::cout << "Guess a match" << std::endl <<
             "Guess 1: ";
@@ -315,46 +368,48 @@ void PuzzleRoom::leftPuzzle()
                 std::cin >> guess1;
             }
         }
-        userGuess[guess1 - 1] = true;
 
         std::cout << "Guess 2: ";
         //get guess2
         std::cin >> guess2;
         //input validation
-        while((guess2 < 1) || (guess2 > boardSize) || (userGuess[guess2 - 1] == true))
+        while((guess2 < 1) || (guess2 > boardSize) || (userGuess[guess2 - 1] == true) || (guess2 == guess1))
         {
             if ((guess2 < 1) || (guess2 > boardSize))
             {
                 std::cout << "Invalid selection, enter a number between 1-" << boardSize << ": ";
                 std::cin >> guess2;
             }
-            else if (userGuess[guess2 - 1] == true)
+            else if ((userGuess[guess2 - 1] == true) || (guess2 == guess1))
             {
                 std::cout << "Invalid selection, you have already selected that one. Select again";
                 std::cin >> guess2;
             }
         }
-        userGuess[guess2 - 1] = true;
 
         //check to see if guesses match
         if (board[guess1 - 1] == board[guess2 - 1]) //if correct match
         {
-            correctMatches += 1;
+            ++correctMatches;
+            userGuess[guess1 - 1] = true;
+            userGuess[guess2 - 1] = true;
         }
         else //else incorrect match
         {
-            incorrectMatches += 1;
+            --incorrectGuessesLeft;
+            incorrectGuesses.push_back(guess1);
+            incorrectGuesses.push_back(guess2);
         }
 
         //Check for win and loss conditions:
-        if (correctMatches == 3)
+        if (correctMatches == 8)
         {
             std::cout << "As you enter your guess, the puzzle starts to crack, and within seconds it crumbles into itself." << std::endl <<
                 "In a chain-reaction, the links attached to the puzzle begin to break away in similar fashion." << std::endl <<
                 "One by one, The chains break away until they break away from the door." << std::endl;
             leftPuzzleWon = true;
         }
-        else if (incorrectMatches == 3)
+        else if (incorrectGuessesLeft == 0)
         {
             std::cout << "Slashes break through all sides of the puzzle, scribbling it into a blank slate." << std::endl <<
                 "As quickly as the puzzle disappeared, a fresh, blank puzzle rises from the surface in an effervescent fashion," << std::endl <<
@@ -380,23 +435,23 @@ void PuzzleRoom::rightPuzzle()
     //create puzzle board
     int const boardSize = 9;
     int board[boardSize]{};
+    int numbers = 3;
+    //load board with ints 0-numbers and randomizer with random ints
+    for (int i = 0; i < boardSize; i++) board[i] = (i % numbers) + 1;
 
+    //randomize array
     //create array of random ints for a randomized selection sort on the board
     int randomizer[boardSize]{};
 
-    //load board with ints 0-15 and randomizer with random ints
     //generate initial rand() seed based off system time
     srand(static_cast<int>(time(0)));
-    int numbers = 3;
+
     for (int i = 0; i < boardSize; i++)
     {
-        board[i] = (i % numbers) + 1;
         //get new random seed from last rand om number
         srand(rand());
         randomizer[i] = rand(); //random ints with system clock as random seed
     }
-    //set random board number to zero
-    board[rand() % 9] = 0;
 
     //RANDOM SORT:
     //performed through a selection sort of the randomizer, and
@@ -421,6 +476,9 @@ void PuzzleRoom::rightPuzzle()
         board[i] = board[min_index];
         board[min_index] = temp;
     }
+
+    //set random board number to zero
+    board[rand() % boardSize] = 0;
 
     //BEGIN PUZZLE LOOP
     while ((!puzzleFail) && (!rightPuzzleWon))
@@ -451,7 +509,6 @@ void PuzzleRoom::rightPuzzle()
             std::is_sorted(std::begin(board) + 1, std::end(board)) << std::endl << std::endl;
         if (std::is_sorted(std::begin(board) + 1, std::end(board)))
         {
-            clearScreen();
             std::cout << "Congrats, you've completed the puzzle!" << std::endl;
             rightPuzzleWon = true;
             continue;
@@ -461,9 +518,9 @@ void PuzzleRoom::rightPuzzle()
         for (int i = 0; i < indexOfZero; i++) std::swap(board[i], board[i + 1]);
 
         //Print directions
-        std::cout << "Align the pieces in order," << std::endl <<
-            "Choose a number to the top, left, right, or bottom" << std::endl <<
-            "of the blank space, to swap it's place" << std::endl << std::endl;
+        std::cout << "Use the arrow keys to rearrange the numbers" << std::endl <<
+                     "Align the pieces in order from top left to bottom right" << std::endl <<
+                     "Press the ESC key to exit" << std::endl;
 
         //if last input was invalid, print message
         if (invalidInput)
@@ -475,16 +532,11 @@ void PuzzleRoom::rightPuzzle()
         //else print blank line
         else std::cout << std::endl << std::endl;
 
-        //get input
-        std::cout << "Which number do you want to swap?: " << std::endl <<
-            "1. Left" << std::endl <<
-            "2. Down" << std::endl <<
-            "3. Right" << std::endl <<
-            "4. Up" << std::endl <<
-            "5. Exit" << std::endl;
-        getInput(5);
+        //get arrow input using getchArrowInput() from getchInput.h
 
-        if (userInput == 5) //exit the puzzle
+        userInput = getchArrowInput();
+
+        if (userInput == ESC_KEY) //exit the puzzle
         {
             std::cout << "Are you sure you want to exit the puzzle?" << std::endl <<
                 "1. Yes" << std::endl <<
@@ -498,7 +550,7 @@ void PuzzleRoom::rightPuzzle()
         //check input and zero index to decide if swap is possible
         //make swap if possible
         //trigger invalid input message
-        else if (userInput == 1) //left
+        else if (userInput == KEY_LEFT) //left
         {
             //swapping to left is impossible if indexOfZero is on left,
             //This is indexes 0, 3, and 6
@@ -513,7 +565,7 @@ void PuzzleRoom::rightPuzzle()
                 --indexOfZero;
             }
         }
-        else if (userInput == 2) //bottom
+        else if (userInput == KEY_DOWN) //bottom
         {
             //swapping bottom is impossible if indexOfZero is on bottom,
             //this is indexes 6, 7, and 8
@@ -528,7 +580,7 @@ void PuzzleRoom::rightPuzzle()
                 indexOfZero += 3;
             }
         }
-        else if (userInput == 3) //right
+        else if (userInput == KEY_RIGHT) //right
         {
             //swapping right is impossible if indexOfZero is on right
             //this is indexes 2, 5, and 8
@@ -543,7 +595,7 @@ void PuzzleRoom::rightPuzzle()
                 ++indexOfZero;
             }
         }
-        else if (userInput == 4) //top
+        else if (userInput == KEY_UP) //top
         {
             //swapping top is impossible if indexOfZero is on top
             //this is indexes 0, 1, and 2
@@ -573,11 +625,6 @@ void PuzzleRoom::getInput(int numOptions)
         std::cin >> userInput;
         if (userInput < 1 || userInput > numOptions) std::cout << "Invalid selection" << std::endl;
     }
-}
-
-void PuzzleRoom::processInput()
-{
-    //TODO? all if/else if statements can be put here for better cleanup
 }
 
 void PuzzleRoom::clearScreen()
