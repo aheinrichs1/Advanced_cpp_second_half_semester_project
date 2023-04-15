@@ -103,6 +103,7 @@ void PuzzleRoom::endArea()
     //get userInput
     getInput(3);
 
+    clearScreen();
     //process userInput
     //If door is unlocked, go thru and finish room, otherwise print message and do nothing
     if (userInput == 1)
@@ -252,7 +253,7 @@ void PuzzleRoom::leftPuzzle()
     int guess2 = 1;
 
     //create puzzle board
-    int const boardSize = 16;
+    int const boardSize = 8;
     int board[boardSize]{};
 
     //create/set int for number of correct matches and incorrect matches
@@ -260,8 +261,8 @@ void PuzzleRoom::leftPuzzle()
     int incorrectGuessesLeft = boardSize / 2;
 
     //load board with ints 1-8
-    int numbers = 8;
-    for(int i = 0; i < boardSize; i++) board[i] = (i % numbers) + 1;
+    int pairs = boardSize / 2;
+    for(int i = 0; i < boardSize; i++) board[i] = (i % pairs) + 1;
 
     //randomize array
     //create array of random ints for a randomized selection sort on the board
@@ -304,10 +305,6 @@ void PuzzleRoom::leftPuzzle()
     //create boolean array of user guesses and set to false
     bool userGuess[boardSize]{false};
 
-    //create vector to store incorrect guesses
-    std::vector<int>incorrectGuesses;
-
-
     //ENTER PUZZLE LOOP
     while((!leftPuzzleWon) && (!puzzleFail))
     {
@@ -327,15 +324,6 @@ void PuzzleRoom::leftPuzzle()
         else //else incorrect match
         {
             std::cout << "Incorrect!" << std::endl;
-        }
-
-        //Display incorrect guesses
-        if(!incorrectGuesses.empty())
-        {
-            std::sort(incorrectGuesses.begin(), incorrectGuesses.end());
-            //One liner that deletes any elements in vector that have been guessed
-            for(size_t i = 0; i < incorrectGuesses.size(); i++) if(userGuess[incorrectGuesses[i] - 1] == true) incorrectGuesses.erase(incorrectGuesses.begin() + i--);
-            for(size_t i = 0; i < incorrectGuesses.size(); i++) std::cout << "Square " << incorrectGuesses[i] << " contains " << board[incorrectGuesses[i] - 1] << std::endl;
         }
 
         //Print board:
@@ -396,14 +384,39 @@ void PuzzleRoom::leftPuzzle()
         }
         else //else incorrect match
         {
+            clearScreen();
+            std::cout << "Incorrect!" << std::endl;
             --incorrectGuessesLeft;
-            incorrectGuesses.push_back(guess1);
-            incorrectGuesses.push_back(guess2);
+            //print board with guesses for 1 second
+            for (int i = 0; i < boardSize; i++)
+            {
+                //if space has been guessed or is guess1 or guess2, show it, else dont
+                if((userGuess[i]) || (i == guess1 - 1) || (i == guess2 - 1))
+                {
+                    std::cout << board[i] << " ";
+                }
+                else
+                {
+                    std::cout << "X ";
+                }
+                //Every 4 board spaces, go to a new line:
+                if ((i + 1) % 4 == 0) std::cout << std::endl;
+            }
+            //sleep for 2 seconds
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
 
         //Check for win and loss conditions:
-        if (correctMatches == 8)
+        if (correctMatches == pairs)
         {
+            clearScreen();
+            std::cout << "COMPLETED" << std::endl;
+            //print completed board
+            for (int i = 0; i < boardSize; i++)
+            {
+                (userGuess[i]) ? (std::cout << board[i] << " ") : (std::cout << "X ");
+                if ((i + 1) % 4 == 0) std::cout << std::endl;
+            }
             std::cout << "As you enter your guess, the puzzle starts to crack, and within seconds it crumbles into itself." << std::endl <<
                 "In a chain-reaction, the links attached to the puzzle begin to break away in similar fashion." << std::endl <<
                 "One by one, The chains break away until they break away from the door." << std::endl;
